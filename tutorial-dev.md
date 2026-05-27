@@ -1,7 +1,8 @@
 # Guia do Desenvolvedor — Acesso ao Ambiente
 
-Você receberá três informações do administrador:
-- **Host** — endereço da sua VM
+Você receberá quatro informações do administrador:
+- **Host** — IP do servidor (`168.195.15.225`)
+- **Porta** — porta SSH da sua VM (ex: `2201`, `2202`, `2203` ou `2204`)
 - **Usuário** — seu login
 - **Senha** — trocar no primeiro acesso
 
@@ -46,8 +47,8 @@ Adicione (substituindo os valores pelos que o admin enviou):
 ```
 Host meu-ambiente
     HostName <HOST>
+    Port <PORTA>
     User <USUARIO>
-    ProxyJump <JUMP_HOST>
 ```
 
 ### 3. Conectar

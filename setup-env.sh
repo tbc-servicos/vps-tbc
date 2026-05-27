@@ -25,17 +25,18 @@ fi
 echo -e "${BOLD}Informe os dados recebidos do administrador:${RESET}"
 echo
 
-read -rp "  Host da VM (ex: 10.0.0.3 ou vm.exemplo.com): " VM_HOST
-read -rp "  Jump host (deixe em branco se conexão direta): " JUMP_HOST
+read -rp "  Host (ex: 168.195.15.225): " VM_HOST
+read -rp "  Porta (ex: 2201): " VM_PORT
 read -rp "  Usuário: " VM_USER
 read -rsp "  Senha: " VM_PASS
 echo
-read -rp "  Alias para o ambiente (ex: meu-ambiente): " VM_ALIAS
+read -rp "  Alias para o ambiente (ex: meu-ambiente) [meu-ambiente]: " VM_ALIAS
 
 echo
 
 # ─── validações básicas ───────────────────────────────────────────────────────
 [[ -z "$VM_HOST" ]]  && error "Host não pode ser vazio."
+[[ -z "$VM_PORT" ]]  && error "Porta não pode ser vazia."
 [[ -z "$VM_USER" ]]  && error "Usuário não pode ser vazio."
 [[ -z "$VM_PASS" ]]  && error "Senha não pode ser vazia."
 [[ -z "$VM_ALIAS" ]] && VM_ALIAS="meu-ambiente"
@@ -50,7 +51,6 @@ info "Configurando ~/.ssh/config..."
 # remover entrada anterior com mesmo alias
 if grep -q "^Host ${VM_ALIAS}$" "$SSH_CONFIG" 2>/dev/null; then
     warn "Entrada '${VM_ALIAS}' já existe — sobrescrevendo."
-    # remover bloco existente
     perl -i -0pe "s/\nHost ${VM_ALIAS}\n(    .*\n)*//g" "$SSH_CONFIG" 2>/dev/null || true
 fi
 
@@ -58,22 +58,17 @@ fi
     echo ""
     echo "Host ${VM_ALIAS}"
     echo "    HostName ${VM_HOST}"
+    echo "    Port ${VM_PORT}"
     echo "    User ${VM_USER}"
-    if [[ -n "$JUMP_HOST" ]]; then
-        echo "    ProxyJump ${JUMP_HOST}"
-    fi
 } >> "$SSH_CONFIG"
 
 chmod 600 "$SSH_CONFIG"
 success "~/.ssh/config atualizado (alias: ${VM_ALIAS})"
 
 # ─── testar conexão ───────────────────────────────────────────────────────────
-info "Testando conexão com ${VM_HOST}..."
+info "Testando conexão com ${VM_HOST}:${VM_PORT}..."
 
-SSH_OPTS=(-o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 -o BatchMode=no)
-if [[ -n "$JUMP_HOST" ]]; then
-    SSH_OPTS+=(-J "$JUMP_HOST")
-fi
+SSH_OPTS=(-o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 -o BatchMode=no -p "$VM_PORT")
 
 if command -v sshpass &>/dev/null; then
     CONN_TEST=$(sshpass -p "$VM_PASS" ssh "${SSH_OPTS[@]}" "${VM_USER}@${VM_HOST}" "echo ok" 2>&1) || true
