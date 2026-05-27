@@ -7,9 +7,23 @@ Você receberá três informações do administrador:
 
 ---
 
+## Pré-requisito: terminal com Bash
+
+- **Mac/Linux:** use o terminal nativo
+- **Windows:** instale o **WSL 2** antes de continuar
+
+  ```powershell
+  # Execute no PowerShell como Administrador
+  wsl --install
+  ```
+
+  Reinicie o computador quando solicitado. Após reiniciar, abra o **Ubuntu** pelo menu Iniciar e conclua a configuração inicial. Use sempre o terminal do WSL daqui em diante.
+
+---
+
 ## Opção A — Configuração automática (recomendado)
 
-Execute o comando abaixo no seu terminal e siga as instruções:
+Execute no terminal e siga as instruções:
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/tbc-servicos/vps-tbc/main/setup-env.sh)
@@ -21,26 +35,10 @@ O script configura tudo automaticamente: SSH, troca de senha e teste de conexão
 
 ## Opção B — Configuração manual
 
-### 1. Verificar SSH
+### 1. Configurar ~/.ssh/config
 
-```bash
-ssh -V
-```
-
-Se não tiver instalado:
-- **Windows:** ative o OpenSSH em *Configurações → Aplicativos → Recursos opcionais*, ou instale o [Git for Windows](https://git-scm.com/download/win)
-- **Mac/Linux:** já vem instalado
-
-### 2. Configurar ~/.ssh/config
-
-**Mac/Linux:**
 ```bash
 nano ~/.ssh/config
-```
-
-**Windows** — abra com Notepad ou VS Code:
-```
-C:\Users\<seu-usuario>\.ssh\config
 ```
 
 Adicione (substituindo os valores pelos que o admin enviou):
