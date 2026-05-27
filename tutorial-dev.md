@@ -12,7 +12,7 @@ Você receberá três informações do administrador:
 Execute o comando abaixo no seu terminal e siga as instruções:
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/seu-org/seu-repo/main/setup-env.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/rodrigopg/vps-tbc/main/setup-env.sh)
 ```
 
 O script configura tudo automaticamente: SSH, troca de senha e teste de conexão.
