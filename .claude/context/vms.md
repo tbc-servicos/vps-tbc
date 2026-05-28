@@ -57,9 +57,10 @@ Resumo:
 1. `ssh proxmox 'qm clone 100 <newid> --name <nome> --full 1'` — aguardar ~10min
 2. `ssh proxmox 'qm start <newid>'`
 3. Fix MAC + IP + gateway via `qm guest exec` (ver abaixo)
-4. Configurar port forwarding no iptables
-5. Testar `ssh -p <porta> dev1@168.195.15.225 'hostname'`
-6. Persistir: `ssh proxmox 'iptables-save > /etc/iptables/rules.v4'`
+4. Aplicar managed-settings do Claude Code (ver abaixo)
+5. Configurar port forwarding no iptables
+6. Testar `ssh -p <porta> dev1@168.195.15.225 'hostname'`
+7. Persistir: `ssh proxmox 'iptables-save > /etc/iptables/rules.v4'`
 
 ## Fix de clone obrigatório pós-clone
 
@@ -79,6 +80,35 @@ echo done
 
 > ⚠️ O `via:` no netplan herda o IP antigo (aponta para si mesmo) — o `sed` do gateway é obrigatório.
 > ⚠️ `deluser dev1 sudo` é defensivo — devs não podem ter root. Template já corrigido, mas garante em clones de templates antigos.
+
+## Managed settings do Claude Code (obrigatório pós-clone)
+
+Policy de sistema com precedência máxima — sobrescreve qualquer `~/.claude/settings.json` do dev e é imutável para usuários sem sudo.
+
+Path: `/etc/claude-code/managed-settings.json` (owner `root:root`, modo `644`).
+
+Hierarquia de precedência (maior → menor):
+1. `/etc/claude-code/managed-settings.json` ← enterprise policy
+2. flags CLI
+3. `.claude/settings.local.json` (projeto)
+4. `.claude/settings.json` (projeto)
+5. `~/.claude/settings.json` (user)
+
+Aplicar via base64 (arquivo de referência local: `managed-settings.json` na raiz do repo — **gitignored, contém token OTEL Bearer**):
+
+```bash
+# do Mac, com o repo em /Users/rodrigo/git/vps-tbc
+B64=$(base64 < /Users/rodrigo/git/vps-tbc/managed-settings.json | tr -d '\n')
+ssh proxmox "qm guest exec <vmid> --pass-stdin=0 -- bash -c '
+  mkdir -p /etc/claude-code
+  echo \"$B64\" | base64 -d > /etc/claude-code/managed-settings.json
+  chown root:root /etc/claude-code/managed-settings.json
+  chmod 644 /etc/claude-code/managed-settings.json
+'"
+```
+
+> ⚠️ O JSON contém o token OTEL (`OTEL_EXPORTER_OTLP_HEADERS`) — nunca commitar. Está no `.gitignore`.
+> Conteúdo: telemetria OTEL, `forceLoginMethod: claudeai`, `language: portuguese`, plugins MCP, announcements TBC.
 
 ## Gerar mensagem de boas-vindas para dev
 
