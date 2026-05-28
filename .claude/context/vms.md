@@ -57,7 +57,7 @@ Resumo:
 1. `ssh proxmox 'qm clone 100 <newid> --name <nome> --full 1'` — aguardar ~10min
 2. `ssh proxmox 'qm start <newid>'`
 3. Fix MAC + IP + gateway via `qm guest exec` (ver abaixo)
-4. Aplicar managed-settings do Claude Code (ver abaixo)
+4. Aplicar managed-settings + wrapper de telemetria do Claude Code (ver abaixo)
 5. Configurar port forwarding no iptables
 6. Testar `ssh -p <porta> dev1@168.195.15.225 'hostname'`
 7. Persistir: `ssh proxmox 'iptables-save > /etc/iptables/rules.v4'`
@@ -109,6 +109,35 @@ ssh proxmox "qm guest exec <vmid> --pass-stdin=0 -- bash -c '
 
 > ⚠️ O JSON contém o token OTEL (`OTEL_EXPORTER_OTLP_HEADERS`) — nunca commitar. Está no `.gitignore`.
 > Conteúdo: telemetria OTEL, `forceLoginMethod: claudeai`, `language: portuguese`, plugins MCP, announcements TBC.
+> ⚠️ `OTEL_RESOURCE_ATTRIBUTES` **não** fica no managed-settings — é definido pelo wrapper (fonte única, evita conflito de precedência).
+
+## Launch wrapper de telemetria (identifica dev por usuário Linux)
+
+Devs compartilham a mesma conta Claude → `user.email`/`account_uuid` são idênticos e não distinguem quem é quem na telemetria. O wrapper injeta `enduser.id=<user Linux>` e `host.name=<VM>` no `OTEL_RESOURCE_ATTRIBUTES`.
+
+Path: `/usr/local/bin/claude` (root:root **755**). `/usr/local/bin` precede `/usr/bin` no PATH → wrapper resolve antes do binário real (`/usr/bin/claude`).
+
+Arquivo de referência: `claude-wrapper.sh` na raiz do repo (versionado — sem secret).
+
+```bash
+B64_WRAP=$(base64 < /Users/rodrigo/git/vps-tbc/claude-wrapper.sh | tr -d '\n')
+ssh proxmox "qm guest exec <vmid> --pass-stdin=0 -- bash -c '
+  echo \"$B64_WRAP\" | base64 -d > /usr/local/bin/claude
+  chown root:root /usr/local/bin/claude
+  chmod 755 /usr/local/bin/claude
+'"
+```
+
+Conteúdo do wrapper:
+```bash
+export OTEL_RESOURCE_ATTRIBUTES="org=TBC,team.id=dev,plan=teams,enduser.id=$(id -un),host.name=$(hostname)"
+exec /usr/bin/claude "$@"
+```
+
+> Usa `id -un` (não `$USER` — vazio em shell não-login). `exec` preserva sinais/exit code. Path absoluto evita recursão.
+> ⚠️ **Burlável**: dev que roda `/usr/bin/claude` direto pula o wrapper e não emite `enduser.id`. Para identidade não-burlável, única forma é 1 conta Claude por dev (aí `user.email` resolve sozinho).
+
+Telemetria segmentável por: `user.email`/`account_uuid` (conta), `enduser.id` (user Linux), `host.name` (VM).
 
 ## Gerar mensagem de boas-vindas para dev
 
