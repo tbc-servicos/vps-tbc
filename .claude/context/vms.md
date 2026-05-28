@@ -15,13 +15,16 @@
 
 | Usuário | Senha inicial | Grupos | Acesso root |
 |---------|--------------|--------|-------------|
-| dev1 | dev1 | docker | sudo (com senha) |
-| dev2 | dev2 | docker | sudo (com senha) |
-| dev3 | dev3 | docker | sudo (com senha) |
-| dev4 | dev4 | docker | sudo (com senha) |
+| dev1 | dev1 | docker | NÃO — sem sudo |
+| dev2 | dev2 | docker | NÃO — sem sudo |
+| dev3 | dev3 | docker | NÃO — sem sudo |
+| dev4 | dev4 | docker | NÃO — sem sudo |
 
 Senha inicial fraca por design — devs obrigados a trocar no primeiro login (`chage -d 0`).
 Root SSH desabilitado (`PermitRootLogin no`).
+Devs **não** têm sudo/root — só Docker. Acesso root só via admin (ProxyJump).
+
+> ⚠️ Template original tinha `dev1` no grupo `sudo` — corrigido em 2026-05-28. Clones antigos podem ter herdado. Verificar pós-clone: `getent group sudo` deve estar vazio. Se não: `deluser dev1 sudo`.
 
 ## Autenticação Claude Code
 
@@ -68,12 +71,14 @@ sed -i \"s/macaddress: .*/macaddress: \$NEW_MAC/\" \$NETPLAN
 sed -i \"s/10\\.0\\.0\\.[0-9]*/<IP_NOVO>/g\" \$NETPLAN
 sed -i \"s/via: .*/via: 10.0.0.1/\" \$NETPLAN
 hostnamectl set-hostname <nome>
+deluser dev1 sudo 2>/dev/null
 netplan apply
 echo done
 "'
 ```
 
 > ⚠️ O `via:` no netplan herda o IP antigo (aponta para si mesmo) — o `sed` do gateway é obrigatório.
+> ⚠️ `deluser dev1 sudo` é defensivo — devs não podem ter root. Template já corrigido, mas garante em clones de templates antigos.
 
 ## Gerar mensagem de boas-vindas para dev
 
