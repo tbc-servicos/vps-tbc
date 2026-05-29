@@ -1,0 +1,29 @@
+{
+  "mcpServers": {
+    "bitbucket": {
+      "command": "npx",
+      "args": ["-y", "@aashari/mcp-server-atlassian-bitbucket"],
+      "env": {
+        "ATLASSIAN_SITE_NAME": "bitbucket.org",
+        "ATLASSIAN_USER_EMAIL": "rodrigo.pgoncalves@totvs.com.br",
+        "ATLASSIAN_API_TOKEN": "<<TOKEN — KeePass Tokens/BitBucket - API Token>>"
+      }
+    },
+    "n8n-mcp": {
+      "command": "npx",
+      "args": ["n8n-mcp"],
+      "env": {
+        "MCP_MODE": "stdio",
+        "LOG_LEVEL": "error",
+        "DISABLE_CONSOLE_OUTPUT": "true",
+        "N8N_API_URL": "<<URL do n8n — precisa ser alcançável da VM>>",
+        "N8N_API_KEY": "<<API key n8n>>"
+      }
+    },
+    "supabase": {
+      "command": "npx",
+      "args": ["-y", "@supabase/mcp-server-supabase@latest", "--access-token", "<<SUPABASE_ACCESS_TOKEN>>"],
+      "type": "stdio"
+    }
+  }
+}
