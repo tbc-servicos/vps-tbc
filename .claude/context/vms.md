@@ -10,6 +10,16 @@
 | Docker | 29.5.2 CE | via get.docker.com |
 | Docker Compose | v5.1.4 | plugin (`docker compose`) |
 | qemu-guest-agent | instalado | necessário para `qm guest exec` |
+| tmux | 3.6 | sessão persistente — `.tmux.conf` + auto-attach no template |
+
+## Persistência de sessão (tmux)
+
+Template já vem com tmux + auto-attach. Cada SSH interativo cai na sessão `main` (persiste no servidor → trocar de device continua de onde parou). Dotfiles de referência em `dotfiles/` (repo).
+
+- `~/.tmux.conf`: mouse, scrollback 50k, truecolor, escape-time baixo, status bar
+- `~/.bashrc`: snippet `tmux auto-attach (vps-tbc)` — guard para SSH interativo fora de tmux
+
+Mosh não usado: resolve conexão (roaming/sleep), não persistência de sessão entre devices; exigiria UDP forward (acesso é TCP 2201).
 
 ## Usuários
 
@@ -61,6 +71,8 @@ Resumo:
 5. Configurar port forwarding no iptables
 6. Testar `ssh -p <porta> dev1@168.195.15.225 'hostname'`
 7. Persistir: `ssh proxmox 'iptables-save > /etc/iptables/rules.v4'`
+
+> tmux + auto-attach já vêm do template (aplicado 2026-05-29). Se clonar de template antigo, aplicar os dotfiles de `dotfiles/` manualmente.
 
 ## Fix de clone obrigatório pós-clone
 
