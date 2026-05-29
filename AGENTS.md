@@ -7,16 +7,20 @@ Infraestrutura Proxmox VE 9.1 com VMs Ubuntu 26.04 para desenvolvimento com Clau
 | Área | Arquivo |
 |------|---------|
 | Proxmox, rede, port forwarding, CLI pve | `.claude/context/infra.md` |
-| VMs, usuários, stack, fix de clone | `.claude/context/vms.md` |
+| VMs, usuários, stack, fix de clone, tmux | `.claude/context/vms.md` |
+| Migração ambiente local → VM | `MIGRACAO.md` |
+| Playwright na VM com browser no Mac | `PLAYWRIGHT-VM.md` |
+| Dotfiles aplicados ao template | `dotfiles/` |
 
 ## Regras inegociáveis
 
-- Template VMID 100: nunca iniciar — apenas clonar
+- Template VMID 100: nunca iniciar — apenas clonar. Para editar: `qm set 100 --template 0` → start → fix → shutdown → `--template 1`
 - Pós-clone: fix de MAC + gateway obrigatório antes de tentar SSH
 - Gateway no netplan sempre `10.0.0.1` — clone herda IP errado no `via:`
+- Devs sem sudo/root — só Docker. Acesso root só via admin (ProxyJump)
 - `stop`/`rollback`: confirmar com usuário antes — destrutivo
 - Full clone demora ~10min — não interromper
-- `pve` CLI pode exigir `source ~/.zshrc` na sessão atual
+- VM exposta na internet (porta 220N) — não pôr secret de hypervisor/produção solto
 
 ## Comandos essenciais
 
